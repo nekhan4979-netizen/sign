@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SignCraft - Live Video Hand Tracking Studio & ASL Portal</title>
+  <!-- Tailwind CSS CDN with dark mode support -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#ecfdf5',
+              100: '#d1fae5',
+              500: '#10b981',
+              600: '#059669',
+              700: '#047857',
+            },
+            obsidian: {
+              900: '#0b1120',
+              950: '#060a12'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="stylesheet" href="./styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+    font-mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 min-h-screen transition-colors duration-300 flex flex-col selection:bg-emerald-500 selection:text-white">
+
+  <!-- Fallback Banner if JavaScript fails to load on host -->
+  <div id="js-fail-banner" class="hidden bg-rose-600 text-white px-4 py-3 text-center text-sm font-bold shadow-lg z-50 sticky top-0">
+    ⚠️ JavaScript failed to load. Check that the <code class="bg-rose-700 px-1 py-0.5 rounded">js/</code> folder was uploaded to the host. • جاوا اسکرپٹ فائلیں لوڈ نہیں ہو سکیں۔
+  </div>
+
+  <!-- Navigation Header -->
+  <header class="sticky top-0 z-40 border-b border-slate-200/80 dark:border-slate-800/80 bg-white/95 dark:bg-slate-950/95 backdrop-blur-md transition-colors">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      
+      <!-- Brand Logo (Emerald & Mint) -->
+      <div class="flex items-center space-x-3 cursor-pointer" onclick="app.switchTab('dictionary')">
+        <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center text-white shadow-lg shadow-emerald-600/25">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 11.5V14m0-2.5v-6a1.5 1.5 0 113 0m-3 6a1.5 1.5 0 00-3 0v2a7.5 7.5 0 0015 0v-5a1.5 1.5 0 00-3 0m-6-3V11m0-5.5v-1a1.5 1.5 0 013 0v1m0 0V11m0-5.5a1.5 1.5 0 013 0v3m0 0V11" />
+          </svg>
+        </div>
+        <div>
+          <span class="text-xl font-extrabold tracking-tight text-slate-900 dark:text-white flex items-center gap-1.5">
+            SignCraft
+            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 uppercase tracking-wide">STUDIO</span>
+          </span>
+          <p class="text-[11px] text-slate-400 font-medium hidden sm:block">Video Hand Tracking & ASL Platform</p>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <nav class="hidden md:flex items-center space-x-1 bg-slate-100/90 dark:bg-slate-900/90 p-1.5 rounded-2xl border border-slate-200/60 dark:border-slate-800">
+        <button data-tab="dictionary" class="nav-tab-btn px-4 py-2 rounded-xl text-sm font-bold transition-all flex items-center gap-2 border border-transparent">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+          </svg>
+          Dictionary
+        </button>
+        <button id="tab-words" data-tab="words" class="nav-tab-btn px-4 py-2 rounded-xl text-sm font-bold transition-all flex items-center gap-2 border border-transparent">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+          </svg>
+          Words (الفاظ)
+        </button>
+        <button data-tab="quiz" class="nav-tab-btn px-4 py-2 rounded-xl text-sm font-bold transition-all flex items-center gap-2 border border-transparent">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          Practice & Quiz
+        </button>
+        <button data-tab="camera" class="nav-tab-btn px-4 py-2 rounded-xl text-sm font-bold transition-all flex items-center gap-2 border border-transparent relative">
+          <span class="flex h-2.5 w-2.5 relative">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+          </span>
+          Live Camera
+        </button>
+      </nav>
+
+      <!-- Action Utilities (Sound & Theme Toggle) -->
+      <div class="flex items-center space-x-2">
+        <button id="sound-toggle-btn" title="Toggle Sound Effects" class="p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+          <svg id="sound-icon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+          </svg>
+        </button>
+
+        <button id="theme-toggle-btn" title="Toggle Light/Dark Theme" class="p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+          <svg id="theme-icon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+          </svg>
+        </button>
+      </div>
+
+    </div>
+
+    <!-- Mobile Nav Bar -->
+    <div class="md:hidden flex items-center justify-around border-t border-slate-200/60 dark:border-slate-800 py-2 px-1 bg-slate-50/95 dark:bg-slate-950/95">
+      <button data-tab="dictionary" class="nav-tab-btn text-xs font-bold px-3 py-1.5 rounded-lg flex flex-col items-center">
+        📖 Learn
+      </button>
+      <button data-tab="words" class="nav-tab-btn text-xs font-bold px-3 py-1.5 rounded-lg flex flex-col items-center">
+        💬 Words
+      </button>
+      <button data-tab="quiz" class="nav-tab-btn text-xs font-bold px-3 py-1.5 rounded-lg flex flex-col items-center">
+        🎯 Quiz
+      </button>
+      <button data-tab="camera" class="nav-tab-btn text-xs font-bold px-3 py-1.5 rounded-lg flex flex-col items-center">
+        📹 Studio
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Content Container -->
+  <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+    <!-- =============================================================== -->
+    <!-- SECTION 1: DICTIONARY & LEARN                                  -->
+    <!-- =============================================================== -->
+    <section id="section-dictionary" class="space-y-8">
+      
+      <!-- Premium Modern Hero Header -->
+      <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-white via-emerald-50/50 to-teal-50/40 dark:from-slate-900 dark:via-slate-900/90 dark:to-emerald-950/30 border border-slate-200/80 dark:border-slate-800 shadow-xl shadow-emerald-500/5 p-6 sm:p-10 transition-all">
+        <!-- Ambient Glow Effects -->
+        <div class="absolute -top-24 -right-24 w-80 h-80 bg-emerald-400/15 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute -bottom-24 -left-24 w-80 h-80 bg-teal-400/10 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div class="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+          
+          <!-- Left Column: Title, Subtitle, Direct CTAs -->
+          <div class="lg:col-span-7 space-y-4">
+            
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-100/80 dark:bg-emerald-950/80 border border-emerald-300/60 dark:border-emerald-700/50 text-emerald-800 dark:text-emerald-300 text-xs font-bold tracking-wide">
+              <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span>AI-POWERED SIGN LEARNING</span>
+              <span class="text-emerald-400">•</span>
+              <span class="font-urdu dir-rtl text-[11px]">ذہین سائن لینگویج</span>
+            </div>
+
+            <h1 class="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-slate-900 dark:text-white leading-[1.15]">
+              Master Sign Language with <span class="bg-gradient-to-r from-emerald-600 to-teal-500 bg-clip-text text-transparent">Live AI Vision</span>.
+            </h1>
+
+            <p class="text-slate-600 dark:text-slate-300 text-sm sm:text-base leading-relaxed max-w-xl font-medium">
+              امریکن سائن لینگویج کے مستند اشارے، حروف اور اعداد سیکھیں اور اپنے ویب کیم کے سامنے لائیو پریکٹس کریں۔
+            </p>
+
+            <!-- Action Buttons -->
+            <div class="flex flex-wrap items-center gap-3 pt-2">
+              <button onclick="app.switchTab('camera')" class="px-5 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs sm:text-sm shadow-lg shadow-emerald-600/25 transition-all flex items-center gap-2 hover:scale-[1.02] active:scale-95 cursor-pointer">
+                <span class="flex h-2 w-2 relative">
+                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                  <span class="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
+                </span>
+                <span>📹 Start Live Camera Practice</span>
+              </button>
+
+              <button onclick="app.switchTab('quiz')" class="px-5 py-3 rounded-2xl bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 font-bold text-xs sm:text-sm shadow-sm transition-all hover:scale-[1.02] active:scale-95 cursor-pointer flex items-center gap-2">
+                <span>🎯 Play Quiz (کوئز کھیلیں)</span>
+              </button>
+            </div>
+
+          </div>
+
+          <!-- Right Column: Interactive Feature Highlight Badges -->
+          <div class="lg:col-span-5 grid grid-cols-2 gap-3">
+            
+            <div class="p-4 rounded-2xl bg-white/80 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/60 shadow-sm backdrop-blur-sm flex flex-col justify-between hover:border-emerald-500/40 transition-colors">
+              <div class="w-9 h-9 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-lg mb-2">
+                🤟
+              </div>
+              <div>
+                <span class="text-xl font-black text-slate-900 dark:text-white font-mono">43+ Signs</span>
+                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">A-Z, 0-9 & Everyday Words</p>
+              </div>
+            </div>
+
+            <div class="p-4 rounded-2xl bg-white/80 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/60 shadow-sm backdrop-blur-sm flex flex-col justify-between hover:border-emerald-500/40 transition-colors">
+              <div class="w-9 h-9 rounded-xl bg-teal-50 dark:bg-teal-950/60 text-teal-600 dark:text-teal-400 flex items-center justify-center text-lg mb-2">
+                ⚡
+              </div>
+              <div>
+                <span class="text-xl font-black text-slate-900 dark:text-white font-mono">60 FPS AI</span>
+                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Instant Hand Tracking</p>
+              </div>
+            </div>
+
+            <div class="p-4 rounded-2xl bg-white/80 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/60 shadow-sm backdrop-blur-sm flex flex-col justify-between hover:border-emerald-500/40 transition-colors">
+              <div class="w-9 h-9 rounded-xl bg-cyan-50 dark:bg-cyan-950/60 text-cyan-600 dark:text-cyan-400 flex items-center justify-center text-lg mb-2">
+                🇵🇰
+              </div>
+              <div>
+                <span class="text-xl font-black text-slate-900 dark:text-white font-mono">اردو + EN</span>
+                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Bilingual Audio & Text</p>
+              </div>
+            </div>
+
+            <div class="p-4 rounded-2xl bg-white/80 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/60 shadow-sm backdrop-blur-sm flex flex-col justify-between hover:border-emerald-500/40 transition-colors">
+              <div class="w-9 h-9 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center text-lg mb-2">
+                🎥
+              </div>
+              <div>
+                <span class="text-xl font-black text-slate-900 dark:text-white font-mono">Lifeprint</span>
+                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Authentic Videos & Demos</p>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Search & Category Filters -->
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+        
+        <!-- Search Input -->
+        <div class="relative w-full sm:w-96">
+          <input id="dictionary-search" type="text" placeholder="Search signs, letters, numbers... (Press '/' to search)"
+                 class="w-full pl-11 pr-4 py-3 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:focus:ring-emerald-400 text-sm shadow-sm transition-all">
+          <div class="absolute left-3.5 top-3.5 text-slate-400">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </div>
+        </div>
+
+        <!-- Filter Buttons -->
+        <div class="flex items-center gap-2 overflow-x-auto w-full sm:w-auto pb-1 sm:pb-0">
+          <button data-category="all" class="category-filter-btn px-4 py-2 rounded-xl text-xs font-bold transition-all bg-emerald-600 text-white shadow-md shadow-emerald-600/25 whitespace-nowrap">
+            All
+          </button>
+          <button data-category="alphabet" class="category-filter-btn px-4 py-2 rounded-xl text-xs font-bold transition-all bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 hover:bg-slate-200 whitespace-nowrap">
+            Alphabet (A-Z)
+          </button>
+          <button data-category="number" class="category-filter-btn px-4 py-2 rounded-xl text-xs font-bold transition-all bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 hover:bg-slate-200 whitespace-nowrap">
+            Numbers (0-9)
+          </button>
+          <button data-category="phrase" class="category-filter-btn px-4 py-2 rounded-xl text-xs font-bold transition-all bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 hover:bg-slate-200 whitespace-nowrap">
+            Phrases & Greetings
+          </button>
+          <button data-category="essentials" class="category-filter-btn px-4 py-2 rounded-xl text-xs font-bold transition-all bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 hover:bg-slate-200 whitespace-nowrap">
+            Essentials
+          </button>
+        </div>
+
+      </div>
+
+      <!-- Dictionary Grid (Desktop: 4 cards per row, no 6 narrow cards) -->
+      <div id="dictionary-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <!-- Rendered dynamically in batches of 12 by Visualizer -->
+      </div>
+
+      <!-- Pagination & Load More Container -->
+      <div id="dictionary-pagination-container" class="flex flex-col items-center justify-center pt-8 pb-6 space-y-3">
+        <button id="dictionary-load-more-btn" type="button" class="px-8 py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-md shadow-emerald-600/20 transition-all flex items-center gap-2 hover:scale-[1.02] active:scale-95 cursor-pointer">
+          <span>Load More Signs →</span>
+        </button>
+        <span id="dictionary-counter-text" class="text-xs font-mono font-medium text-slate-500 dark:text-slate-400">
+          Showing 12 of 43 signs
+        </span>
+        <!-- Sentinel for non-intrusive infinite scroll when approaching bottom -->
+        <div id="dictionary-scroll-sentinel" class="w-full h-8 pointer-events-none opacity-0"></div>
+      </div>
+
+    </section>
+
+    <!-- =============================================================== -->
+    <!-- SECTION 2: ASL WORDS & VIDEO CLIPS STUDIO                      -->
+    <!-- =============================================================== -->
+    <section id="section-words" class="hidden space-y-8 max-w-6xl mx-auto">
+      
+      <!-- Section Header Banner -->
+      <div class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 text-white p-6 sm:p-10 shadow-xl shadow-emerald-700/15">
+        <div class="relative z-10 max-w-2xl">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 backdrop-blur-md border border-white/20 text-emerald-100 text-xs font-mono font-bold mb-3">
+            <span>🎥 ASL WORDS & VIDEO CLIPS</span>
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-300"></span>
+            <span>الفاظ اور ویڈیو کلپس</span>
+          </div>
+          <h2 class="text-2xl sm:text-4xl font-black tracking-tight text-white">
+            Core ASL Words Cinema
+          </h2>
+          <p class="text-sm sm:text-base text-emerald-50/90 mt-2 font-medium">
+            Watch authentic human video demonstrations for essential conversational sign language words with bilingual Urdu & English guides.
+          </p>
+
+          <!-- Quick Words Strip -->
+          <div class="flex flex-wrap items-center gap-2 mt-5">
+            <span class="text-xs font-bold text-emerald-100">Featured Words:</span>
+            <button onclick="wordsStudio.selectWord('HELLO')" class="px-3 py-1 rounded-lg bg-white/20 hover:bg-white text-white hover:text-emerald-800 text-xs font-bold transition-all backdrop-blur-sm">HELLO (سلام)</button>
+            <button onclick="wordsStudio.selectWord('THANK YOU')" class="px-3 py-1 rounded-lg bg-white/20 hover:bg-white text-white hover:text-emerald-800 text-xs font-bold transition-all backdrop-blur-sm">THANK YOU (شکریہ)</button>
+            <button onclick="wordsStudio.selectWord('PLEASE')" class="px-3 py-1 rounded-lg bg-white/20 hover:bg-white text-white hover:text-emerald-800 text-xs font-bold transition-all backdrop-blur-sm">PLEASE (براہ مہربانی)</button>
+            <button onclick="wordsStudio.selectWord('HELP')" class="px-3 py-1 rounded-lg bg-white/20 hover:bg-white text-white hover:text-emerald-800 text-xs font-bold transition-all backdrop-blur-sm">HELP (مدد)</button>
+            <button onclick="wordsStudio.selectWord('WATER')" class="px-3 py-1 rounded-lg bg-white/20 hover:bg-white text-white hover:text-emerald-800 text-xs font-bold transition-all backdrop-blur-sm">WATER (پانی)</button>
+            <button onclick="wordsStudio.selectWord('FOOD')" class="px-3 py-1 rounded-lg bg-white/20 hover:bg-white text-white hover:text-emerald-800 text-xs font-bold transition-all backdrop-blur-sm">FOOD (کھانا)</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Featured Word Cinema Player -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        
+        <!-- Video Screen (Left 7 Cols) -->
+        <div class="lg:col-span-7 bg-white rounded-3xl p-5 border border-slate-200 shadow-xl flex flex-col items-center">
+          
+          <!-- Cinema Stage Top Bar -->
+          <div class="w-full flex items-center justify-between pb-3 mb-3 border-b border-slate-100">
+            <div class="flex items-center gap-2">
+              <span id="words-theater-category" class="text-[11px] font-mono font-bold px-2.5 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700">
+                Core Word
+              </span>
+              <span class="text-xs font-bold text-slate-400">Featured Theater</span>
+            </div>
+
+            <!-- View Switcher (Video vs Sketch) -->
+            <div class="flex items-center gap-1 bg-slate-100 p-1 rounded-xl">
+              <button id="words-view-video-btn" class="px-3 py-1 rounded-lg text-xs font-bold bg-emerald-600 text-white shadow-sm transition-all">
+                🎥 Video
+              </button>
+              <button id="words-view-sketch-btn" class="px-3 py-1 rounded-lg text-xs font-bold bg-slate-100 text-slate-600 hover:bg-slate-200 transition-all">
+                ✏️ Sketch
+              </button>
+            </div>
+          </div>
+
+          <!-- Cinema Viewport Box -->
+          <div id="words-theater-stage" class="w-full h-80 sm:h-96 rounded-2xl bg-slate-950 flex items-center justify-center overflow-hidden relative shadow-inner">
+            <!-- Rendered dynamically by WordsStudio -->
+          </div>
+
+          <!-- Video Playback Controls Strip -->
+          <div class="w-full flex flex-wrap items-center justify-between gap-3 pt-4 mt-3 border-t border-slate-100">
+            <!-- Speed controls -->
+            <div class="flex items-center gap-1.5">
+              <span class="text-xs font-bold text-slate-400">Speed:</span>
+              <button class="words-speed-btn px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-100 text-slate-600 hover:bg-slate-200" data-speed="0.5">0.5x</button>
+              <button class="words-speed-btn px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-600 text-white shadow-sm" data-speed="0.75">0.75x</button>
+              <button class="words-speed-btn px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-100 text-slate-600 hover:bg-slate-200" data-speed="1.0">1.0x</button>
+            </div>
+
+            <!-- Loop & Listen -->
+            <div class="flex items-center gap-4">
+              <label class="flex items-center gap-1.5 text-xs font-bold text-slate-600 cursor-pointer">
+                <input id="words-loop-toggle" type="checkbox" checked class="rounded text-emerald-600 focus:ring-emerald-500 w-4 h-4">
+                <span>Loop Video</span>
+              </label>
+
+              <button id="words-speak-btn" title="Speak Word" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-bold border border-emerald-200 transition-all">
+                <span>🔊</span>
+                <span>آواز سنیں</span>
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Word Info & Sequence Builder (Right 5 Cols) -->
+        <div class="lg:col-span-5 space-y-5">
+          
+          <!-- Word Description Card -->
+          <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-xl space-y-4">
+            <div>
+              <span class="text-[11px] font-mono font-bold uppercase tracking-wider text-slate-400">CURRENT WORD</span>
+              <h3 id="words-theater-title-en" class="text-2xl sm:text-3xl font-black text-slate-900 mt-1">
+                HELLO / SALAM
+              </h3>
+              <p id="words-theater-title-ur" class="text-xl font-bold text-emerald-600 font-urdu dir-rtl mt-1">
+                السلام علیکم / ہیلو
+              </p>
+            </div>
+
+            <div class="p-4 rounded-2xl bg-emerald-50/50 border border-emerald-100">
+              <span class="text-xs font-bold text-emerald-800 block mb-1">اشارہ بنانے کا طریقہ (Signing Guide):</span>
+              <p id="words-theater-desc-ur" class="text-sm text-slate-700 font-urdu dir-rtl leading-relaxed">
+                کھلی ہتھیلی ماتھے کے پاس سے باہر لہرائیں۔
+              </p>
+            </div>
+
+            <!-- Practice in Studio Button -->
+            <button onclick="app.switchToPractice(wordsStudio.activeWordId)" class="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-md shadow-emerald-600/20 transition-all flex items-center justify-center gap-2">
+              <span>📹 Practice This Word With Webcam</span>
+            </button>
+          </div>
+
+          <!-- Sentence / Phrase Sequencing Card -->
+          <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-xl">
+            <span class="text-[11px] font-mono font-bold uppercase tracking-wider text-slate-400 block mb-2">QUICK PHRASE TESTER</span>
+            <p class="text-xs text-slate-500 mb-3">Click phrases to watch their video clips play consecutively:</p>
+            
+            <div class="flex flex-col gap-2">
+              <button onclick="wordsStudio.loadPresetSequence('HELLO PLEASE WATER THANK YOU')" class="w-full text-left px-3.5 py-2.5 rounded-xl bg-slate-50 hover:bg-emerald-50 border border-slate-200 text-xs font-bold text-slate-700 hover:text-emerald-800 transition-all flex items-center justify-between">
+                <span>"HELLO + PLEASE + WATER + THANK YOU"</span>
+                <span class="text-[10px] font-mono text-emerald-600">Play ▶</span>
+              </button>
+              <button onclick="wordsStudio.loadPresetSequence('HELP PLEASE WATER')" class="w-full text-left px-3.5 py-2.5 rounded-xl bg-slate-50 hover:bg-emerald-50 border border-slate-200 text-xs font-bold text-slate-700 hover:text-emerald-800 transition-all flex items-center justify-between">
+                <span>"HELP + PLEASE + WATER"</span>
+                <span class="text-[10px] font-mono text-emerald-600">Play ▶</span>
+              </button>
+              <button onclick="wordsStudio.loadPresetSequence('HELLO FRIEND')" class="w-full text-left px-3.5 py-2.5 rounded-xl bg-slate-50 hover:bg-emerald-50 border border-slate-200 text-xs font-bold text-slate-700 hover:text-emerald-800 transition-all flex items-center justify-between">
+                <span>"HELLO + FRIEND"</span>
+                <span class="text-[10px] font-mono text-emerald-600">Play ▶</span>
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- Word Clips Filter & Catalog Grid -->
+      <div class="space-y-4 pt-4">
+        
+        <!-- Controls Bar -->
+        <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+          <!-- Category Tabs -->
+          <div class="flex flex-wrap items-center gap-2">
+            <button class="words-filter-btn px-4 py-2 rounded-xl text-xs font-bold transition-all bg-emerald-600 text-white shadow-md shadow-emerald-600/20" data-category="all">
+              All Words (تمام)
+            </button>
+            <button class="words-filter-btn px-4 py-2 rounded-xl text-xs font-bold transition-all bg-slate-100 text-slate-600 hover:bg-slate-200" data-category="greetings">
+              Greetings (سلام)
+            </button>
+            <button class="words-filter-btn px-4 py-2 rounded-xl text-xs font-bold transition-all bg-slate-100 text-slate-600 hover:bg-slate-200" data-category="polite">
+              Polite (شکریہ و اخلاق)
+            </button>
+            <button class="words-filter-btn px-4 py-2 rounded-xl text-xs font-bold transition-all bg-slate-100 text-slate-600 hover:bg-slate-200" data-category="essentials">
+              Essentials (ضروریات)
+            </button>
+            <button class="words-filter-btn px-4 py-2 rounded-xl text-xs font-bold transition-all bg-slate-100 text-slate-600 hover:bg-slate-200" data-category="emotions">
+              Emotions (احساسات)
+            </button>
+          </div>
+
+          <!-- Search Input -->
+          <div class="w-full sm:w-64 relative">
+            <input type="text"
+                   id="words-search-input"
+                   placeholder="تلاش کریں / Search words..."
+                   class="w-full pl-9 pr-4 py-2 text-xs rounded-xl border border-slate-200 bg-white focus:outline-none focus:border-emerald-500 font-sans shadow-sm" />
+            <svg class="w-4 h-4 text-slate-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+            </svg>
+          </div>
+        </div>
+
+        <!-- Video Cards Grid -->
+        <div id="words-grid-container" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+          <!-- Rendered dynamically by words.js -->
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- =============================================================== -->
+    <!-- SECTION 3: PRACTICE & QUIZZES                                  -->
+    <!-- =============================================================== -->
+    <section id="section-quiz" class="hidden space-y-8 max-w-3xl mx-auto">
+      
+      <!-- Quiz Header & Mode Selector -->
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div>
+          <h2 class="text-3xl font-black text-slate-900 dark:text-white">Practice & Assessment</h2>
+          <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Test your recognition memory with gamified challenges.</p>
+        </div>
+
+        <div class="flex items-center gap-2 bg-slate-100 dark:bg-slate-900 p-1.5 rounded-2xl border border-slate-200 dark:border-slate-800">
+          <button id="tab-quiz-mc" class="px-5 py-2.5 rounded-xl font-bold text-sm transition-all bg-emerald-600 text-white shadow-md shadow-emerald-600/25">
+            Multiple Choice
+          </button>
+          <button id="tab-flashcards" class="px-5 py-2.5 rounded-xl font-bold text-sm transition-all bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200">
+            3D Flashcards
+          </button>
+        </div>
+      </div>
+
+      <!-- Multiple Choice Area -->
+      <div id="quiz-active-area" class="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-200 dark:border-slate-800 shadow-xl">
+        
+        <!-- Stats Strip -->
+        <div class="flex items-center justify-between mb-6 pb-4 border-b border-slate-100 dark:border-slate-800">
+          <div class="flex items-center space-x-4">
+            <div class="flex items-center space-x-1.5">
+              <span class="text-lg">⭐</span>
+              <span class="text-xs font-bold text-slate-400 uppercase">Score:</span>
+              <span id="quiz-score" class="font-mono font-black text-lg text-emerald-500 dark:text-emerald-400">0</span>
+            </div>
+            <div class="flex items-center space-x-1.5">
+              <span class="text-lg">🔥</span>
+              <span class="text-xs font-bold text-slate-400 uppercase">Streak:</span>
+              <span id="quiz-streak" class="font-mono font-black text-lg text-amber-500">0</span>
+            </div>
+          </div>
+
+          <div class="flex items-center space-x-2">
+            <span id="quiz-question-number" class="text-xs font-bold text-slate-400">1 / 10</span>
+          </div>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="w-full h-2 rounded-full bg-slate-100 dark:bg-slate-800 mb-8 overflow-hidden">
+          <div id="quiz-progress-bar" class="h-full bg-emerald-500 rounded-full transition-all duration-300" style="width: 10%;"></div>
+        </div>
+
+        <!-- Question content rendered dynamically by quiz.js -->
+      </div>
+
+      <!-- Quiz Results Card (Hidden until finished) -->
+      <div id="quiz-results-area" class="hidden bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-200 dark:border-slate-800 shadow-xl">
+        <!-- Rendered by quiz.js finishQuiz() -->
+      </div>
+
+      <!-- 3D Flashcards Area (Hidden by default) -->
+      <div id="flashcards-area" class="hidden">
+        <!-- Rendered by quiz.js renderFlashcard() -->
+      </div>
+
+    </section>
+
+    <!-- =============================================================== -->
+    <!-- SECTION 4: LIVE VIDEO BROADCAST & HAND TRACKING STUDIO          -->
+    <!-- =============================================================== -->
+    <section id="section-camera" class="hidden space-y-6 max-w-7xl w-full mx-auto">
+      
+      <!-- Studio Header -->
+      <div class="flex items-center justify-between p-3.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+        <div class="flex items-center gap-2.5">
+          <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+          <h2 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white">Live Camera Hand Tracking</h2>
+          <span id="camera-source-label" class="hidden">Live Video</span>
+        </div>
+
+        <div class="flex items-center space-x-2 text-xs font-mono">
+          <span id="camera-hands-count" class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+            0 Hands
+          </span>
+          <span id="camera-status" class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+            Camera Off
+          </span>
+        </div>
+      </div>
+
+      <!-- Studio Video Viewport & Challenge Grid -->
+      <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        
+        <!-- Left 3 Cols: Main Video Broadcast HUD -->
+        <div class="lg:col-span-3 flex flex-col space-y-4">
+          
+          <div id="camera-feed-container" class="relative w-full aspect-[16/9] min-h-[480px] sm:min-h-[560px] rounded-3xl bg-slate-950 border-2 border-slate-800 overflow-hidden shadow-2xl flex items-center justify-center">
+            
+            <!-- Video Element -->
+            <video id="camera-video" playsinline muted autoplay class="absolute inset-0 w-full h-full object-cover"></video>
+            
+            <!-- Dual-Hand Skeleton Canvas Overlay -->
+            <canvas id="camera-canvas" class="absolute inset-0 w-full h-full object-cover pointer-events-none"></canvas>
+
+            <!-- Screen Edge Glowing Pulse Overlay -->
+            <div id="camera-edge-glow" class="absolute inset-0 rounded-3xl pointer-events-none z-30 transition-all duration-300 border-4 border-transparent edge-glow-neutral"></div>
+
+            <!-- Status Badge -->
+            <div id="deaf-status-badge-container" class="absolute top-14 left-4 right-4 z-20 flex justify-center pointer-events-none">
+              <div id="deaf-status-badge" class="px-4 py-2 rounded-2xl bg-slate-900/90 border border-slate-700 text-slate-300 backdrop-blur-md shadow-2xl text-xs sm:text-sm font-bold flex items-center gap-2 transition-all duration-200">
+                <span id="deaf-status-icon" class="text-base">⏳</span>
+                <span id="deaf-status-text-ur" class="font-urdu dir-rtl">ہاتھ کیمرے کے سامنے لائیں</span>
+                <span class="text-slate-500">•</span>
+                <span id="deaf-status-text-en" class="font-mono">Waiting for Hand... (0%)</span>
+              </div>
+            </div>
+
+            <!-- Top Left HUD Badges -->
+            <div class="absolute top-4 left-4 z-10 flex items-center space-x-2">
+              <span class="text-[11px] font-mono font-bold px-2.5 py-1 rounded-lg bg-slate-900/80 backdrop-blur-md text-cyan-400 border border-cyan-500/40">
+                🖐️ L: Cyan
+              </span>
+              <span class="text-[11px] font-mono font-bold px-2.5 py-1 rounded-lg bg-slate-900/80 backdrop-blur-md text-emerald-400 border border-emerald-500/40">
+                ✋ R: Emerald
+              </span>
+            </div>
+
+            <!-- Top Right Action: Flip Camera -->
+            <div class="absolute top-4 right-4 z-10 flex items-center space-x-2">
+              <button id="camera-mirror-btn" title="Toggle Mirror View"
+                      class="px-3 py-1.5 rounded-xl bg-slate-900/80 hover:bg-slate-800 backdrop-blur-md text-white border border-slate-700 text-xs font-bold transition-all flex items-center gap-1 shadow-lg active:scale-95">
+                <svg class="w-3.5 h-3.5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                </svg>
+                Flip
+              </button>
+            </div>
+
+            <!-- Clean Lower Subtitle Bar -->
+            <div class="absolute bottom-3 left-3 right-3 z-10 rounded-2xl broadcast-ticker p-3 backdrop-blur-md text-white shadow-2xl border border-emerald-500/30">
+              <div class="flex items-center justify-between text-xs font-mono">
+                <div class="flex items-center space-x-2">
+                  <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                  <span class="text-slate-300 font-bold uppercase tracking-wider text-[11px]">Sign Detected:</span>
+                  <span id="camera-detected-sign" class="text-emerald-400 font-black text-base">-</span>
+                </div>
+                <div class="flex items-center space-x-2">
+                  <span class="text-slate-400 text-[11px]">Match:</span>
+                  <div class="w-20 h-2 bg-slate-800 rounded-full overflow-hidden">
+                    <div id="camera-confidence-fill" class="h-full bg-emerald-400 rounded-full transition-all duration-150" style="width: 0%;"></div>
+                  </div>
+                  <span id="camera-confidence-text" class="text-emerald-400 text-xs font-bold">0%</span>
+                </div>
+              </div>
+
+              <!-- Hidden elements for backward compatibility -->
+              <div class="hidden">
+                <span id="broadcast-sentence"></span>
+                <button id="broadcast-speak-sentence"></button>
+                <button id="broadcast-clear-sentence"></button>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Video Controls: Simple Start / Stop -->
+          <div class="flex items-center gap-3">
+            
+            <!-- Start Webcam -->
+            <button id="camera-start-btn"
+                    class="w-full py-3.5 px-6 rounded-2xl bg-emerald-500 text-white shadow-md shadow-emerald-500/20 hover:bg-emerald-600 font-black text-sm transition-all active:scale-95 flex items-center justify-center gap-2 cursor-pointer">
+              <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+              </svg>
+              Start Live Camera
+            </button>
+
+            <!-- Stop Feed (Hidden by default) -->
+            <button id="camera-stop-btn"
+                    class="hidden w-full py-3.5 px-6 rounded-2xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-sm shadow-lg shadow-rose-600/25 transition-all active:scale-95 flex items-center justify-center gap-2 cursor-pointer">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" />
+              </svg>
+              Stop Camera
+            </button>
+
+          </div>
+
+        </div>
+
+        <!-- Right Col: Active Target Challenge Card -->
+        <div class="lg:col-span-1 bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-xl flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Target Sign</span>
+            </div>
+
+            <p id="camera-target-prompt" class="text-base font-bold text-slate-900 dark:text-white mb-3">
+              Form the sign for <span class="text-emerald-500 dark:text-emerald-400 font-black font-mono text-2xl">"A"</span>
+            </p>
+
+            <!-- Guide Reference 3D Instructor Canvas Container -->
+            <div id="camera-target-svg" class="w-full h-72 rounded-2xl bg-slate-50 border border-slate-200 shadow-inner relative overflow-hidden mb-4">
+              <!-- 3D Hand Instructor Canvas injected here -->
+            </div>
+          </div>
+
+          <button onclick="cameraPractice.nextChallenge()"
+                  class="w-full mt-2 py-2.5 px-4 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer">
+            <span>Skip Sign</span>
+            <span>→</span>
+          </button>
+        </div>
+
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- Detailed Sign Inspection Modal -->
+  <div id="sign-modal" class="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm hidden items-center justify-center p-4">
+    <div id="sign-modal-content">
+      <!-- Modal card rendered by visualizer.js openModal() -->
+    </div>
+  </div>
+
+  <!-- ASL Human Demonstration Video Masterclass Modal -->
+  <div id="asl-video-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md hidden items-center justify-center p-3 sm:p-6 overflow-y-auto">
+    <div class="relative w-full max-w-4xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl overflow-hidden flex flex-col my-auto text-slate-800 dark:text-slate-100">
+      
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between px-6 py-4 border-b border-slate-200/80 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/80">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl bg-rose-500/10 text-rose-600 flex items-center justify-center font-bold text-lg">
+            ▶️
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h3 class="text-base sm:text-lg font-black tracking-tight text-slate-900 dark:text-white">The ASL Alphabet (Human Demonstration)</h3>
+              <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300">3 Simultaneous Angles</span>
+            </div>
+            <p class="text-xs text-slate-500 font-urdu dir-rtl">امریکن سائن لینگویج حروفِ تہجی - تین کیمروں سے مکمل انسانی مظاہرہ</p>
+          </div>
+        </div>
+        
+        <div class="flex items-center gap-2">
+          <!-- Source Toggle: Local vs YouTube -->
+          <div class="hidden sm:flex items-center p-1 rounded-xl bg-slate-200/70 dark:bg-slate-800 text-xs font-bold">
+            <button id="video-src-local-btn" onclick="app.setVideoSource('local')" class="px-3 py-1 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm transition-all">
+              ⚡ Local 1080p
+            </button>
+            <button id="video-src-yt-btn" onclick="app.setVideoSource('youtube')" class="px-3 py-1 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">
+              🔴 YouTube Stream
+            </button>
+          </div>
+          <button onclick="app.closeVideoModal()" class="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-500 hover:text-slate-800 dark:hover:text-white transition-colors">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Main Video Screen -->
+      <div class="relative w-full bg-black flex items-center justify-center aspect-video overflow-hidden">
+        <!-- Local Video Element -->
+        <video id="asl-demo-local-video" src="assets/asl_alphabet_demo.mp4" controls playsinline class="w-full h-full object-contain"></video>
+
+        <!-- YouTube IFrame Embed (Secondary option) -->
+        <iframe id="asl-demo-yt-iframe" class="w-full h-full hidden" src="" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
+
+        <!-- Active Letter Overlay Banner on Video -->
+        <div id="video-letter-overlay" class="absolute top-4 left-4 z-20 px-3 py-1.5 rounded-xl bg-slate-900/80 backdrop-blur-md border border-slate-700 text-white flex items-center gap-2 pointer-events-none">
+          <span class="text-xs font-mono font-bold text-rose-400">LETTER:</span>
+          <span id="video-current-letter" class="text-lg font-black font-mono text-emerald-400">A</span>
+        </div>
+      </div>
+
+      <!-- Controls & Quick Jump Letter Selector -->
+      <div class="p-4 sm:p-6 space-y-4 bg-white dark:bg-slate-900">
+        
+        <!-- Speed & Practice Helpers -->
+        <div class="flex flex-wrap items-center justify-between gap-3 text-xs">
+          <div class="flex items-center gap-2">
+            <span class="font-bold text-slate-400 uppercase tracking-wider text-[10px]">Playback Speed:</span>
+            <div class="inline-flex rounded-xl bg-slate-100 dark:bg-slate-800 p-0.5">
+              <button onclick="app.setVideoSpeed(0.5)" class="speed-btn px-2.5 py-1 rounded-lg text-xs font-bold text-slate-600 dark:text-slate-300 hover:text-slate-900" data-speed="0.5">0.5x Slow</button>
+              <button onclick="app.setVideoSpeed(0.75)" class="speed-btn px-2.5 py-1 rounded-lg text-xs font-bold text-slate-600 dark:text-slate-300 hover:text-slate-900" data-speed="0.75">0.75x Practice</button>
+              <button onclick="app.setVideoSpeed(1.0)" class="speed-btn px-2.5 py-1 rounded-lg text-xs font-bold bg-white dark:bg-slate-700 text-emerald-600 shadow-sm" data-speed="1.0">1.0x Normal</button>
+            </div>
+          </div>
+
+          <!-- Educational Hint -->
+          <div class="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+            <span>💡</span>
+            <span>Dominant hand at shoulder height, palm facing outward.</span>
+          </div>
+        </div>
+
+        <!-- A-Z Quick Jump Grid -->
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Jump To Letter (حرف پر جائیں):</span>
+            <span class="text-[10px] text-slate-400 font-mono">Click any letter to jump video</span>
+          </div>
+          <div id="video-letters-grid" class="flex flex-wrap gap-1.5">
+            <!-- Rendered by app.js with buttons A to Z -->
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="border-t border-slate-200/80 dark:border-slate-800/80 bg-white dark:bg-slate-950 py-8 mt-16 transition-colors">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-400">
+      <div class="flex items-center space-x-2">
+        <span class="font-bold text-slate-700 dark:text-slate-300">SignCraft Studio</span>
+        <span>•</span>
+        <span>Empowering Inclusive Communication</span>
+      </div>
+      <div class="flex items-center space-x-4">
+        <span>Hand Tracking</span>
+        <span>•</span>
+        <span>Interactive ASL Learning</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- MediaPipe Hands Computer Vision Engine (Pinned exact versions) -->
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.1/camera_utils.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/hands.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils@0.3.1675466124/drawing_utils.js" crossorigin="anonymous"></script>
+
+  <!-- Core JavaScript Modules (Strict relative paths & unified cache-bust) -->
+  <script src="./js/data.js?v=2026-1"></script>
+  <script src="./js/visualizer.js?v=2026-1"></script>
+  <script src="./js/words.js?v=2026-1"></script>
+  <script src="./js/quiz.js?v=2026-1"></script>
+  <script src="./js/camera.js?v=2026-1"></script>
+  <script src="./js/app.js?v=2026-1"></script>
+
+  <!-- Fallback Diagnostics -->
+  <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      setTimeout(() => {
+        if (!window.app || !window.signData) {
+          const banner = document.getElementById('js-fail-banner');
+          if (banner) banner.classList.remove('hidden');
+          console.error('SignCraft: JavaScript failed to initialize.', {
+            app: !!window.app,
+            signData: !!window.signData,
+            visualizer: !!window.visualizer,
+            wordsStudio: !!window.wordsStudio,
+            quizEngine: !!window.quizEngine,
+            cameraPractice: !!window.cameraPractice
+          });
+        }
+      }, 800);
+    });
+  </script>
+</body>
+</html>
